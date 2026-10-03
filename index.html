@@ -304,7 +304,7 @@
             <th data-field="callback">漏接回拨<span class="arrow">↕</span></th>
             <th data-field="avglen">处理均长(s)<span class="arrow">↕</span></th>
             <th class="no-sort">效能等级</th>
-            <th data-field="score">综合得分<span class="arrow">↕</span></th>
+            <th data-field="bonus">绩效奖金<span class="arrow">↕</span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -348,7 +348,7 @@ const THEMES = [
 ];
 
 /* ===== Data layer ===== */
-const QUEUES = ["综合", "人社", "公教企"];
+const QUEUES = ["全部", "综合", "人社", "公教企"];
 const TH = {
   "综合":  { high: 15, mid: 10 },
   "公教企":{ high: 17, mid: 12 },
@@ -376,12 +376,8 @@ function buildData(){
       const answer  = Math.round(rate*100 + rnd()*450 + 350);
       const avglen  = Math.min(240, Math.max(50, Math.round(150 + rnd()*80 - (rate - t.mid)*4)));
       const callback= Math.max(0, Math.round(rnd()*120 - (rate - t.mid)*4));
-      const sRate = Math.min(1, rate / (t.high + 5));
-      const sAns  = Math.min(1, answer / 3200);
-      const sCb   = 1 - Math.min(1, callback / 150);
-      const sLen  = 1 - Math.min(1, (avglen - 50) / 190);
-      const score = Math.round((sRate*40 + sAns*30 + sCb*15 + sLen*15) * 10) / 10;
-      data.push({ id: "A"+String(seq).padStart(4,"0"), name: makeName(), queue: q, rate, answer, callback, avglen, score });
+      const bonus = (answer + callback) * 3;
+      data.push({ id: "A"+String(seq).padStart(4,"0"), name: makeName(), queue: q, rate, answer, callback, avglen, bonus });
       seq++;
     }
   }
@@ -389,7 +385,7 @@ function buildData(){
 }
 const ALL = buildData();
 
-const state = { queueIndex: 0, search: "", field: "score", dir: "desc" };
+const state = { queueIndex: 0, search: "", field: "bonus", dir: "desc" };
 const CYCLE_SEC = 30;
 let cycleTimer = null, cycleStart = Date.now(), cyclePaused = false, searchActive = false, hoverPause = false;
 
@@ -399,7 +395,7 @@ function currentQueue(){ return QUEUES[state.queueIndex]; }
 
 function filtered(){
   const q = currentQueue();
-  let arr = ALL.filter(d => d.queue === q);
+  let arr = (q === "全部") ? ALL.slice() : ALL.filter(d => d.queue === q);
   if (state.search){
     const k = state.search.trim().toLowerCase();
     arr = arr.filter(d => d.name.toLowerCase().includes(k) || d.id.toLowerCase().includes(k));
@@ -411,7 +407,7 @@ function filtered(){
 
 const MEDAL = { 0:"🥇", 1:"🥈", 2:"🥉" };
 function renderHero(arr){
-  const top = [...arr].sort((a,b)=>b.score-a.score).slice(0,3);
+  const top = [...arr].sort((a,b)=>b.bonus-a.bonus).slice(0,3);
   const order = [1,0,2];
   const hero = document.getElementById("hero");
   if (top.length < 3){ hero.innerHTML = ""; return; }
@@ -424,7 +420,7 @@ function renderHero(arr){
       <div class="avatar">${d.name[0]}</div>
       <div class="pname">${d.name}</div>
       <div class="pqueue">${d.id} · ${d.queue}</div>
-      <div class="pscore">${d.score}<small>分</small></div>
+      <div class="pscore">${d.bonus}</div>
     </div>`;
   }).join("");
 }
@@ -432,6 +428,7 @@ function renderHero(arr){
 function renderTable(arr){
   const tb = document.getElementById("tbody");
   if (!arr.length){ tb.innerHTML = `<tr><td colspan="9"><div class="empty">未找到匹配的坐席</div></td></tr>`; return; }
+  const maxBonus = Math.max(1, ...arr.map(d=>d.bonus));
   tb.innerHTML = arr.map((d,i)=>{
     const lvl = levelOf(d);
     const rankCls = i===0 ? "g1" : i===1 ? "g2" : i===2 ? "g3" : "";
@@ -446,7 +443,7 @@ function renderTable(arr){
       <td class="num">${d.callback}</td>
       <td class="num">${d.avglen}</td>
       <td><span class="lvl ${lvl}"><i class="dot"></i>${LVL_TXT[lvl]}</span></td>
-      <td><div class="score"><div class="bar"><span style="width:${Math.min(100,d.score)}%"></span></div><b>${d.score}</b></div></td>
+      <td><div class="score"><div class="bar"><span style="width:${Math.round(d.bonus/maxBonus*100)}%"></span></div><b>${d.bonus}</b></div></td>
     </tr>`;
   }).join("");
 }
