@@ -171,21 +171,38 @@
   body.theme-hud::before{opacity:.85;
     background-image:linear-gradient(rgba(57,255,120,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(57,255,120,.10) 1px,transparent 1px);background-size:34px 34px;}
 
-  /* ===== Design Picker ===== */
-  .picker{position:fixed;right:16px;bottom:16px;z-index:50;width:300px;max-height:80vh;overflow:auto;
-    background:rgba(12,16,28,.92);border:1px solid rgba(120,165,255,.3);border-radius:14px;padding:12px;
-    box-shadow:0 16px 50px rgba(0,0,0,.6);backdrop-filter:blur(10px);}
-  .picker h4{font-size:12px;color:#bcd2ff;margin-bottom:8px;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;}
-  .picker h4 span{font-weight:400;color:#7e8db0;font-size:11px;}
-  .picker .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
-  .swatch{border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:7px 8px;cursor:pointer;
-    display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);transition:all .15s;color:#eaf1fb;}
-  .swatch:hover{border-color:rgba(120,165,255,.6);transform:translateY(-1px);}
-  .swatch.active{border-color:#39d0ff;box-shadow:0 0 12px rgba(57,208,255,.4);}
-  .swatch .chip{width:22px;height:22px;border-radius:6px;flex:none;}
-  .swatch .nm{font-size:12px;font-weight:700;line-height:1.1;}
-  .swatch .idx{font-size:10px;color:#7e8db0;}
-  .picker .hint{font-size:10.5px;color:#7e8db0;margin-top:9px;line-height:1.5;}
+  /* ===== Design Picker (悬浮紧凑) ===== */
+  .picker{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;}
+  .picker .fab{
+    width:46px;height:46px;border-radius:14px;cursor:pointer;position:relative;
+    display:flex;align-items:center;justify-content:center;font-size:21px;
+    background:rgba(12,16,28,.9);border:1px solid rgba(120,165,255,.35);
+    box-shadow:0 8px 26px rgba(0,0,0,.5);backdrop-filter:blur(8px);color:#cfe0ff;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .picker .fab:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.6);}
+  .picker .fab .dot{position:absolute;top:5px;right:5px;width:9px;height:9px;border-radius:50%;
+    background:#39d0ff;box-shadow:0 0 8px rgba(57,208,255,.6);}
+  .picker .pop{
+    position:absolute;right:0;bottom:56px;width:250px;
+    background:rgba(12,16,28,.94);border:1px solid rgba(120,165,255,.3);border-radius:14px;
+    padding:12px;box-shadow:0 16px 50px rgba(0,0,0,.6);backdrop-filter:blur(10px);display:none;
+  }
+  .picker.open .pop{display:block;animation:popIn .15s ease;}
+  @keyframes popIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .picker .pop h4{font-size:12px;color:#bcd2ff;margin-bottom:9px;letter-spacing:1px;
+    display:flex;justify-content:space-between;align-items:center;}
+  .picker .pop h4 span{font-weight:400;color:#7e8db0;font-size:11px;}
+  .picker .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;}
+  .chip-btn{
+    aspect-ratio:1;border-radius:8px;cursor:pointer;border:2px solid transparent;position:relative;
+    display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;
+    color:rgba(255,255,255,.9);transition:transform .12s;
+  }
+  .chip-btn:hover{transform:scale(1.14);}
+  .chip-btn.active{border-color:#fff;box-shadow:0 0 0 2px rgba(57,208,255,.6);}
+  .chip-btn .num{text-shadow:0 1px 2px rgba(0,0,0,.65);}
+  .picker .hint{font-size:10px;color:#7e8db0;margin-top:9px;line-height:1.5;}
 
   /* ===== Responsive: 桌面大屏 / 平板 / 手机 / 超小屏 自适应 ===== */
   @media (max-width:1200px){
@@ -233,7 +250,7 @@
     .avatar-sm{width:26px;height:26px;font-size:11px;}
     .score .bar{width:60px;} .score b{font-size:13.5px;min-width:24px;}
     .queue-pill{padding:4px 10px;font-size:11.5px;} .lvl{padding:4px 10px;font-size:12px;}
-    .picker{width:220px;max-height:70vh;padding:10px;} .picker .grid{gap:6px;} .swatch{padding:6px 7px;}
+    .picker .pop{width:208px;padding:10px;} .picker .grid{gap:6px;} .chip-btn{border-radius:7px;}
   }
   @media (max-width:560px){
     .hero{flex-wrap:wrap;justify-content:center;gap:10px;}
@@ -315,11 +332,14 @@
   <footer>服务运营部 · 坐席业绩排行榜（大屏原型）· 示例数据，可替换为接续数据_清洗匹配.xlsx 导出结果</footer>
 </div>
 
-<!-- Design Picker -->
+<!-- Design Picker (悬浮紧凑) -->
 <div class="picker" id="picker">
-  <h4>设计切换器 <span id="curName"></span></h4>
-  <div class="grid" id="swatchGrid"></div>
-  <div class="hint">点击任一套即可预览 · 按 H 键隐藏/显示本面板 · 选中后告诉我，我定稿</div>
+  <div class="pop" id="pop">
+    <h4>设计切换器 <span id="curName"></span></h4>
+    <div class="grid" id="swatchGrid"></div>
+    <div class="hint">点击任一套预览 · 按 H 隐藏面板 · 选定后告诉我定稿</div>
+  </div>
+  <div class="fab" id="fab" title="设计切换器">🎨<span class="dot" id="fabDot"></span></div>
 </div>
 
 <script>
@@ -527,23 +547,31 @@ function applyTheme(idx){
   const t = THEMES[idx];
   document.body.className = "theme-" + t.id;
   document.getElementById("curName").textContent = "当前：" + t.name;
+  document.getElementById("fabDot").style.background = t.g;
   [...document.getElementById("swatchGrid").children].forEach((s,i)=>s.classList.toggle("active", i===idx));
 }
 function buildPicker(){
   const grid = document.getElementById("swatchGrid");
   grid.innerHTML = THEMES.map((t,i)=>`
-    <div class="swatch" data-i="${i}">
-      <div class="chip" style="background:${t.g}"></div>
-      <div><div class="nm">${t.name}</div><div class="idx">#${String(i+1).padStart(2,"0")}</div></div>
+    <div class="chip-btn" data-i="${i}" title="${t.name} #${String(i+1).padStart(2,"0")}" style="background:${t.g}">
+      <span class="num">${i+1}</span>
     </div>`).join("");
-  grid.querySelectorAll(".swatch").forEach(s=>{
+  grid.querySelectorAll(".chip-btn").forEach(s=>{
     s.onclick = ()=> applyTheme(+s.dataset.i);
   });
 }
+document.getElementById("fab").onclick = (e)=>{
+  e.stopPropagation();
+  document.getElementById("picker").classList.toggle("open");
+};
+document.addEventListener("click", (e)=>{
+  const p = document.getElementById("picker");
+  if (p.classList.contains("open") && !p.contains(e.target)) p.classList.remove("open");
+});
 document.addEventListener("keydown", e=>{
   if (e.key === "h" || e.key === "H"){
     const p = document.getElementById("picker");
-    p.style.display = p.style.display === "none" ? "block" : "none";
+    p.style.display = p.style.display === "none" ? "flex" : "none";
   }
 });
 
